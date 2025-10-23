@@ -15,7 +15,7 @@ from gtts import gTTS
 from googletrans import Translator
 
 
-st.title("TRADUCTORrr.")
+st.title("TRADUCTOR.")
 st.subheader("Escucho lo que quieres traducir.")
 
 
