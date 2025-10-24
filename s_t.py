@@ -12,61 +12,100 @@ import glob
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
     page_title="Traductor por voz",
-    page_icon="🎙️",
+    page_icon="🎧",
     layout="centered",
-    initial_sidebar_state="expanded",
 )
 
 # --- ESTILOS ---
 st.markdown("""
     <style>
-        body { background-color: #f5f6fa; }
-        .stApp { background-color: #f8fafc; color: #1a1a1a; font-family: 'Poppins', sans-serif; }
-        h1, h2, h3, h4 { color: #2f3640; text-align: center; }
-        .css-1v3fvcr, .css-18ni7ap, .css-1n543e5 { background-color: #f0f4f8 !important; }
+        /* Fondo general */
+        .stApp {
+            background: linear-gradient(180deg, #dbeafe 0%, #e0f2fe 50%, #f8fafc 100%);
+            color: #1e293b;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Títulos */
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            background: linear-gradient(to right, #0ea5e9, #0284c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        h2, h3 {
+            text-align: center;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+
+        /* Botones principales */
         .stButton>button {
-            background: linear-gradient(to right, #0077b6, #0096c7);
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 16px;
-            height: 3em;
+            font-weight: 600;
+            padding: 10px 25px;
             width: 100%;
-            transition: 0.3s;
+            transition: 0.3s ease-in-out;
+            box-shadow: 0px 4px 10px rgba(29, 78, 216, 0.3);
         }
+
         .stButton>button:hover {
-            background: linear-gradient(to right, #00b4d8, #48cae4);
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
             transform: scale(1.03);
+            box-shadow: 0px 6px 14px rgba(29, 78, 216, 0.4);
         }
-        .sidebar .sidebar-content {
-            background-color: #e3f2fd;
+
+        /* Sidebar */
+        section[data-testid="stSidebar"] {
+            background-color: #eff6ff;
+            border-right: 2px solid #bfdbfe;
+        }
+
+        /* Texto destacado */
+        .highlight {
+            background-color: #e0f2fe;
+            border-left: 5px solid #0284c7;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        /* Cuadros */
+        .stSelectbox, .stTextInput, .stCheckbox {
+            background-color: #f1f5f9 !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# --- TÍTULO PRINCIPAL ---
+# --- INTERFAZ ---
 st.title("🎧 Traductor por Voz")
-st.subheader("Escucho, traduzco y hablo por ti 🌍")
+st.markdown("<h3>Habla, traduce y escucha tu voz en otro idioma 🌍</h3>", unsafe_allow_html=True)
 
-# --- IMAGEN PRINCIPAL ---
+# --- Imagen principal ---
 if os.path.exists('OIG7.jpg'):
     image = Image.open('OIG7.jpg')
     st.image(image, width=280)
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.subheader("🔊 Instrucciones")
-    st.write("""
+    st.header("🗒️ Instrucciones")
+    st.markdown("""
     1️⃣ Presiona **Escuchar 🎤**  
     2️⃣ Habla claramente lo que deseas traducir  
-    3️⃣ Selecciona idioma de entrada y salida  
-    4️⃣ ¡Escucha tu traducción en voz alta!
+    3️⃣ Selecciona los idiomas de entrada y salida  
+    4️⃣ Presiona **Convertir** y escucha tu traducción 🎶
     """)
 
 # --- BOTÓN DE ESCUCHA ---
-st.write("Pulsa el botón y habla lo que quieres traducir:")
-
+st.markdown("<div class='highlight'>Presiona el botón y habla lo que quieras traducir:</div>", unsafe_allow_html=True)
 stt_button = Button(label="🎤 Escuchar", width=300, height=50)
+
 stt_button.js_on_event("button_click", CustomJS(code="""
     var recognition = new webkitSpeechRecognition();
     recognition.continuous = true;
@@ -96,16 +135,16 @@ result = streamlit_bokeh_events(
     debounce_time=0,
 )
 
-# --- SI HAY RESULTADO ---
+# --- PROCESAMIENTO ---
 if result and "GET_TEXT" in result:
     text = str(result.get("GET_TEXT"))
     st.success(f"🗣️ Texto detectado: {text}")
     translator = Translator()
 
-    st.markdown("---")
-    st.header("🈹 Configura tu traducción")
+    st.divider()
+    st.header("🌐 Configuración de traducción")
 
-    # --- Selección de idiomas ---
+    # --- Idiomas disponibles ---
     idiomas = {
         "Inglés": "en",
         "Español": "es",
@@ -115,10 +154,10 @@ if result and "GET_TEXT" in result:
         "Japonés": "ja",
     }
 
-    input_language = idiomas[st.selectbox("🌐 Idioma de entrada", idiomas.keys())]
-    output_language = idiomas[st.selectbox("🌍 Idioma de salida", idiomas.keys())]
+    input_language = idiomas[st.selectbox("🗨️ Idioma de entrada", idiomas.keys())]
+    output_language = idiomas[st.selectbox("🔊 Idioma de salida", idiomas.keys())]
 
-    # --- Acento del inglés ---
+    # --- Acentos ---
     acentos = {
         "Defecto": "com",
         "Español": "com.mx",
@@ -132,7 +171,7 @@ if result and "GET_TEXT" in result:
 
     tld = acentos[st.selectbox("🎙️ Acento del inglés", acentos.keys())]
 
-    # --- Función de traducción y TTS ---
+    # --- Función de traducción y voz ---
     def text_to_speech(input_lang, output_lang, text, tld):
         translation = translator.translate(text, src=input_lang, dest=output_lang)
         trans_text = translation.text
@@ -144,14 +183,15 @@ if result and "GET_TEXT" in result:
 
     mostrar_texto = st.checkbox("📝 Mostrar texto traducido")
 
-    if st.button("🔁 Convertir y reproducir"):
+    if st.button("🔁 Traducir y reproducir"):
         audio_path, translated_text = text_to_speech(input_language, output_language, text, tld)
+        st.markdown("### 🎧 Audio generado:")
         st.audio(audio_path, format="audio/mp3")
         if mostrar_texto:
             st.markdown("### 🪶 Traducción:")
             st.info(translated_text)
 
-    # --- Limpieza de archivos antiguos ---
+    # --- Limpieza automática ---
     def remove_old_audio(days=7):
         mp3_files = glob.glob("temp/*.mp3")
         now = time.time()
